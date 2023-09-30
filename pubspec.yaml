@@ -7,9 +7,13 @@ environment:
   sdk: '>=3.2.0-174.0.dev <4.0.0'
 
 dependencies:
+  cron: ^0.5.1
   flutter:
     sdk: flutter
   geolocator: ^10.0.1
+  sms_receiver: ^0.4.2
+  telephony: ^0.2.0
+  url_launcher: ^6.1.14
 
 dev_dependencies:
   flutter_lints: ^2.0.0

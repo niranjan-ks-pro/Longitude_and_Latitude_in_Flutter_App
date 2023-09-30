@@ -1,8 +1,9 @@
-// ignore_for_file: unused_local_variable
-
 import 'dart:async';
+import 'package:cron/cron.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:telephony/telephony.dart';
 
 void main() {
   runApp(
@@ -19,6 +20,11 @@ void main() {
       },
     ),
   );
+  final cron = Cron();
+  cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+    print('CRON JOB');
+    print(DateTime.now().millisecondsSinceEpoch);
+  });
 }
 
 class FirstScreen extends StatelessWidget {
@@ -36,9 +42,14 @@ class FirstScreen extends StatelessWidget {
           // Within the `FirstScreen` widget
           onPressed: () {
             // Navigate to the second screen using a named route.
-            Navigator.pushNamed(context, '/second');
+
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (context) => Home()),
+            );
           },
           child: const Text('Get curent location'),
+          ///////SMS Reading Section
         ),
       ),
     );
@@ -46,11 +57,15 @@ class FirstScreen extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
+  MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(home: Home());
   }
 }
+
+bool loading = true;
 
 class Home extends StatefulWidget {
   @override
@@ -64,13 +79,42 @@ class _HomeState extends State<Home> {
   late Position position;
   String long = "", lat = "";
   late StreamSubscription<Position> positionStream;
+  //sms
+  String smsBody = "";
+  String smsAddress = "";
+  Telephony telephony = Telephony.instance;
+
+  //sms
 
   @override
   void initState() {
     checkGps();
     super.initState();
+    //sms
+    telephony.listenIncomingSms(
+      onNewMessage: (SmsMessage message) {
+        print(message.address); //+977981******67, sender nubmer
+        print(message.body); //sms text
+        print(message.date); //1659690242000, timestamp
+        setState(() {
+          smsBody = message.body.toString();
+          smsAddress = message.address.toString();
+          if (smsBody == "Where are you") {
+            // ignore: unused_local_variable
+            print("smsBody contains Where are you");
+            var locationUrl = getLatLongURL();
+          } else {
+            print("smsBody does not contain Where are you");
+          }
+        });
+      },
+      listenInBackground: false,
+    );
+    //sms
+    //return latlong
   }
 
+  //return latlong
   checkGps() async {
     servicestatus = await Geolocator.isLocationServiceEnabled();
     if (servicestatus) {
@@ -124,6 +168,7 @@ class _HomeState extends State<Home> {
       //device must move horizontally before an update event is generated;
     );
 
+    // ignore: unused_local_variable
     StreamSubscription<Position> positionStream =
         Geolocator.getPositionStream(locationSettings: locationSettings)
             .listen((Position position) {
@@ -139,27 +184,62 @@ class _HomeState extends State<Home> {
     });
   }
 
+  //return latlong
+
+  getLatLongURL() {
+    List LatAndLong = getLocation();
+
+    var url = "http://maps.google.com/maps?z=12&t=m&q=";
+    getLocation();
+    var urlFull = url + lat + "," + long;
+    print(urlFull);
+    return urlFull;
+  }
+
+  //return latlong
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           leading: BackButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
-          title: Text("Curent location"),
+          title: const Text("Curent location and SMS Listener"),
           backgroundColor: Colors.redAccent,
         ),
         body: Container(
-            alignment: Alignment.center,
-            padding: EdgeInsets.all(50),
-            child: Column(children: [
-              Text(servicestatus ? "GPS is Enabled" : "GPS is disabled."),
+          alignment: Alignment.topLeft,
+          padding: const EdgeInsets.only(top: 30, left: 20, right: 20),
+          child: Column(
+            //sms
+            crossAxisAlignment: CrossAxisAlignment.start,
+            //sms
+            children: [
               Text(haspermission ? "GPS is Enabled" : "GPS is disabled."),
-              Text("Longitude: $long", style: TextStyle(fontSize: 20)),
+              const Divider(),
+              Text("Your current Longitude: $long",
+                  style: const TextStyle(fontSize: 20)),
+              Text("Your current Latitude : $lat",
+                  style: const TextStyle(fontSize: 20)),
+              const Divider(),
+              //sms
+              const Text(
+                "Recieved SMS Text:",
+                style: TextStyle(fontSize: 25),
+              ),
               Text(
-                "Latitude: $lat",
+                "SMS Text: " + smsBody,
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                " From: " + smsAddress,
                 style: TextStyle(fontSize: 20),
               )
-            ])));
+            ],
+            //sms
+          ),
+        ));
   }
 }
