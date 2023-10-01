@@ -10,6 +10,7 @@ dependencies:
   cron: ^0.5.1
   flutter:
     sdk: flutter
+  flutter_sms: ^2.3.3
   geolocator: ^10.0.1
   sms_receiver: ^0.4.2
   telephony: ^0.2.0

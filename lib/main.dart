@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cron/cron.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sms/flutter_sms.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:telephony/telephony.dart';
 
@@ -99,10 +100,28 @@ class _HomeState extends State<Home> {
         setState(() {
           smsBody = message.body.toString();
           smsAddress = message.address.toString();
+          var mobileNumber = smsAddress;
           if (smsBody == "Where are you") {
             // ignore: unused_local_variable
             print("smsBody contains Where are you");
             var locationUrl = getLatLongURL();
+            print("location url ready to send is = " + locationUrl);
+            print("location url ready to send to = " + mobileNumber);
+
+            //how to send sms to a given number
+            void _sendSMS(String locationUrl, List<String> mobileNumber) async {
+              String message = locationUrl;
+              List<String> recipents = mobileNumber;
+              String _result = await sendSMS(
+                      message: locationUrl,
+                      recipients: mobileNumber,
+                      sendDirect: true)
+                  .catchError((onError) {
+                print(onError);
+              });
+              print(_result);
+              //how to send sms to a given number
+            }
           } else {
             print("smsBody does not contain Where are you");
           }
@@ -111,10 +130,8 @@ class _HomeState extends State<Home> {
       listenInBackground: false,
     );
     //sms
-    //return latlong
   }
 
-  //return latlong
   checkGps() async {
     servicestatus = await Geolocator.isLocationServiceEnabled();
     if (servicestatus) {
@@ -187,7 +204,7 @@ class _HomeState extends State<Home> {
   //return latlong
 
   getLatLongURL() {
-    List LatAndLong = getLocation();
+    //List LatAndLong = getLocation();
 
     var url = "http://maps.google.com/maps?z=12&t=m&q=";
     getLocation();
