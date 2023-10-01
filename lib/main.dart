@@ -1,6 +1,7 @@
 // ignore_for_file: unused_local_variable
 
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -36,7 +37,10 @@ class FirstScreen extends StatelessWidget {
           // Within the `FirstScreen` widget
           onPressed: () {
             // Navigate to the second screen using a named route.
-            Navigator.pushNamed(context, '/second');
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (context) => Home()),
+            );
           },
           child: const Text('Get curent location'),
         ),
@@ -143,9 +147,9 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: BackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          leading: BackButton(onPressed: () {
+            Navigator.pop(context);
+          }),
           title: Text("Curent location"),
           backgroundColor: Colors.redAccent,
         ),
